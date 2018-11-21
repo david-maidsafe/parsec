@@ -6,12 +6,8 @@
 // KIND, either express or implied. Please review the Licences for the specific language governing
 // permissions and limitations relating to use of the SAFE Network Software.
 
-mod environment;
-mod network;
-mod peer;
+mod bounded;
 mod schedule;
 
-pub use self::environment::{Environment, PeerCount, TransactionCount};
-pub use self::network::Network;
-pub use self::peer::Peer;
+pub use self::bounded::{Bounded, BoundedBoxedStrategy};
 pub use self::schedule::*;

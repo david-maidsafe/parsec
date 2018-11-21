@@ -1,0 +1,358 @@
+/// our_id: Alice
+/// peer_list: {
+///   Alice; PeerState(VOTE|SEND|RECV); peers: {}
+///   Bob; PeerState(VOTE|SEND|RECV); peers: {Alice, Bob, Carol, Dave, Eric}
+///   Carol; PeerState(VOTE|SEND|RECV); peers: {Alice, Bob, Carol, Dave, Eric}
+///   Dave; PeerState(VOTE|SEND|RECV); peers: {Alice, Bob, Carol, Dave, Eric}
+///   Eric; PeerState(VOTE|SEND|RECV); peers: {Alice, Bob, Carol, Dave, Eric}
+/// }
+digraph GossipGraph {
+  splines=false
+  rankdir=BT
+
+  style=invis
+  subgraph cluster_Alice {
+    label=Alice
+    Alice [style=invis]
+    "Alice" -> "A_37" [minlen=1]
+  }
+  "D_35" -> "A_37" [constraint=false]
+
+  style=invis
+  subgraph cluster_Bob {
+    label=Bob
+    Bob [style=invis]
+    "Bob" -> "B_49" [minlen=1]
+  }
+
+  style=invis
+  subgraph cluster_Carol {
+    label=Carol
+    Carol [style=invis]
+    "Carol" -> "C_38" [minlen=1]
+  }
+
+  style=invis
+  subgraph cluster_Dave {
+    label=Dave
+    Dave [style=invis]
+    "Dave" -> "D_35" [minlen=4]
+  }
+  "B_49" -> "D_35" [constraint=false]
+
+  style=invis
+  subgraph cluster_Eric {
+    label=Eric
+    Eric [style=invis]
+  }
+
+
+  {
+    rank=same
+    Alice [style=filled, color=white]
+    Bob [style=filled, color=white]
+    Carol [style=filled, color=white]
+    Dave [style=filled, color=white]
+    Eric [style=filled, color=white]
+  }
+  Alice -> Bob -> Carol -> Dave -> Eric [style=invis]
+
+/// ===== details of events =====
+  "A_37" [fillcolor=white, shape=rectangle, label=<<table border="0" cellborder="0" cellpadding="0" cellspacing="0">
+<tr><td colspan="6">A_37</td></tr>
+<tr><td></td><td width="50">stage</td><td width="30">est</td><td width="30">bin</td><td width="30">aux</td><td width="30">dec</td></tr>
+<tr><td>A: </td><td>0/0</td><td>t</td><td>t</td><td>t</td><td>t</td></tr>
+<tr><td>B: </td><td>0/0</td><td>t</td><td>t</td><td>t</td><td>t</td></tr>
+<tr><td>C: </td><td>0/0</td><td>t</td><td>t</td><td>t</td><td>t</td></tr>
+<tr><td>D: </td><td>0/0</td><td>t</td><td>t</td><td>t</td><td>t</td></tr>
+<tr><td>E: </td><td>0/0</td><td>f</td><td>f</td><td>f</td><td>-</td></tr>
+<tr><td>   </td><td>0/1</td><td>f</td><td>f</td><td>f</td><td>f</td></tr></table>>]
+/// cause: Request
+/// last_ancestors: {Alice: 37, Bob: 49, Carol: 38, Dave: 35}
+
+  "B_49" [fillcolor=white, shape=rectangle, label=<<table border="0" cellborder="0" cellpadding="0" cellspacing="0">
+<tr><td colspan="6">B_49</td></tr>
+<tr><td></td><td width="50">stage</td><td width="30">est</td><td width="30">bin</td><td width="30">aux</td><td width="30">dec</td></tr>
+<tr><td>A: </td><td>0/0</td><td>t</td><td>t</td><td>t</td><td>t</td></tr>
+<tr><td>B: </td><td>0/0</td><td>t</td><td>t</td><td>t</td><td>t</td></tr>
+<tr><td>C: </td><td>0/0</td><td>t</td><td>t</td><td>t</td><td>t</td></tr>
+<tr><td>D: </td><td>0/0</td><td>t</td><td>t</td><td>t</td><td>t</td></tr>
+<tr><td>E: </td><td>0/0</td><td>f</td><td>f</td><td>f</td><td>-</td></tr>
+<tr><td>   </td><td>0/1</td><td>f</td><td>f</td><td>f</td><td>-</td></tr></table>>]
+/// cause: Request
+/// last_ancestors: {Alice: 31, Bob: 49, Carol: 32, Dave: 34}
+
+  "C_38" [fillcolor=white, shape=rectangle, label=<<table border="0" cellborder="0" cellpadding="0" cellspacing="0">
+<tr><td colspan="6">C_38</td></tr>
+<tr><td></td><td width="50">stage</td><td width="30">est</td><td width="30">bin</td><td width="30">aux</td><td width="30">dec</td></tr>
+<tr><td>A: </td><td>0/0</td><td>t</td><td>t</td><td>t</td><td>t</td></tr>
+<tr><td>B: </td><td>0/0</td><td>t</td><td>t</td><td>t</td><td>t</td></tr>
+<tr><td>C: </td><td>0/0</td><td>t</td><td>t</td><td>t</td><td>t</td></tr>
+<tr><td>D: </td><td>0/0</td><td>t</td><td>t</td><td>t</td><td>t</td></tr>
+<tr><td>E: </td><td>0/0</td><td>f</td><td>f</td><td>f</td><td>-</td></tr>
+<tr><td>   </td><td>0/1</td><td>f</td><td>f</td><td>f</td><td>-</td></tr></table>>]
+/// cause: Request
+/// last_ancestors: {Alice: 33, Bob: 45, Carol: 38, Dave: 34}
+
+  "D_35" [fillcolor=white, shape=rectangle, label=<<table border="0" cellborder="0" cellpadding="0" cellspacing="0">
+<tr><td colspan="6">D_35</td></tr>
+<tr><td></td><td width="50">stage</td><td width="30">est</td><td width="30">bin</td><td width="30">aux</td><td width="30">dec</td></tr>
+<tr><td>A: </td><td>0/0</td><td>t</td><td>t</td><td>t</td><td>t</td></tr>
+<tr><td>B: </td><td>0/0</td><td>t</td><td>t</td><td>t</td><td>t</td></tr>
+<tr><td>C: </td><td>0/0</td><td>t</td><td>t</td><td>t</td><td>t</td></tr>
+<tr><td>D: </td><td>0/0</td><td>t</td><td>t</td><td>t</td><td>t</td></tr>
+<tr><td>E: </td><td>0/0</td><td>f</td><td>f</td><td>f</td><td>-</td></tr>
+<tr><td>   </td><td>0/1</td><td>f</td><td>f</td><td>f</td><td>-</td></tr></table>>]
+/// cause: Response
+/// last_ancestors: {Alice: 31, Bob: 49, Carol: 32, Dave: 35}
+
+}
+
+/// ===== meta-elections =====
+/// consensus_history:
+/// 557e90b3402a68f6ff018647557ba9919531dd36a5bd86650947bc56dcef3a40
+
+/// MetaElectionHandle(0)
+/// consensus_len: 0
+/// round_hashes: {
+///   Alice -> [
+///     RoundHash { round: 0, latest_block_hash: 0000000000000000000000000000000000000000000000000000000000000000 }
+///   ]
+///   Bob -> [
+///     RoundHash { round: 0, latest_block_hash: 0000000000000000000000000000000000000000000000000000000000000000 }
+///   ]
+///   Carol -> [
+///     RoundHash { round: 0, latest_block_hash: 0000000000000000000000000000000000000000000000000000000000000000 }
+///   ]
+///   Dave -> [
+///     RoundHash { round: 0, latest_block_hash: 0000000000000000000000000000000000000000000000000000000000000000 }
+///   ]
+///   Eric -> [
+///     RoundHash { round: 0, latest_block_hash: 0000000000000000000000000000000000000000000000000000000000000000 }
+///   ]
+/// }
+/// interesting_events: {
+///   Alice -> ["A_4", "A_12"]
+///   Bob -> ["B_5", "B_14"]
+///   Carol -> ["C_4", "C_12"]
+///   Dave -> ["D_3", "D_11"]
+/// }
+/// all_voters: {Alice, Bob, Carol, Dave, Eric}
+/// undecided_voters: {Eric}
+/// payload: Genesis({Alice, Bob, Carol, Dave, Eric})
+/// meta_events: {
+///   A_4 -> {
+///     observees: {}
+///     interesting_content: [Genesis({Alice, Bob, Carol, Dave, Eric})]
+///   }
+///   A_12 -> {
+///     observees: {Alice, Bob, Carol, Dave}
+///     interesting_content: [Remove(Eric)]
+///     meta_votes: {
+///         stage est bin aux dec
+///       A: 0/0   t   -   -   - 
+///       B: 0/0   t   -   -   - 
+///       C: 0/0   t   -   -   - 
+///       D: 0/0   t   -   -   - 
+///       E: 0/0   f   -   -   - 
+///     }
+///   }
+///   A_37 -> {
+///     observees: {Alice, Bob, Carol, Dave}
+///     interesting_content: []
+///     meta_votes: {
+///         stage est bin aux dec
+///       A: 0/0   t   t   t   t 
+///       B: 0/0   t   t   t   t 
+///       C: 0/0   t   t   t   t 
+///       D: 0/0   t   t   t   t 
+///       E: 0/0   f   f   f   - 
+///          0/1   f   f   f   f 
+///     }
+///   }
+///   B_5 -> {
+///     observees: {}
+///     interesting_content: [Genesis({Alice, Bob, Carol, Dave, Eric})]
+///   }
+///   B_14 -> {
+///     observees: {Alice, Bob, Carol, Dave}
+///     interesting_content: [Remove(Eric)]
+///     meta_votes: {
+///         stage est bin aux dec
+///       A: 0/0   t   -   -   - 
+///       B: 0/0   t   -   -   - 
+///       C: 0/0   t   -   -   - 
+///       D: 0/0   t   -   -   - 
+///       E: 0/0   f   -   -   - 
+///     }
+///   }
+///   B_49 -> {
+///     observees: {Alice, Bob, Carol, Dave}
+///     interesting_content: []
+///     meta_votes: {
+///         stage est bin aux dec
+///       A: 0/0   t   t   t   t 
+///       B: 0/0   t   t   t   t 
+///       C: 0/0   t   t   t   t 
+///       D: 0/0   t   t   t   t 
+///       E: 0/0   f   f   f   - 
+///          0/1   f   f   f   f 
+///     }
+///   }
+///   C_4 -> {
+///     observees: {}
+///     interesting_content: [Genesis({Alice, Bob, Carol, Dave, Eric})]
+///   }
+///   C_12 -> {
+///     observees: {Alice, Bob, Carol, Dave}
+///     interesting_content: [Remove(Eric)]
+///     meta_votes: {
+///         stage est bin aux dec
+///       A: 0/0   t   -   -   - 
+///       B: 0/0   t   -   -   - 
+///       C: 0/0   t   -   -   - 
+///       D: 0/0   t   -   -   - 
+///       E: 0/0   f   -   -   - 
+///     }
+///   }
+///   C_38 -> {
+///     observees: {Alice, Bob, Carol, Dave}
+///     interesting_content: []
+///     meta_votes: {
+///         stage est bin aux dec
+///       A: 0/0   t   t   t   t 
+///       B: 0/0   t   t   t   t 
+///       C: 0/0   t   t   t   t 
+///       D: 0/0   t   t   t   t 
+///       E: 0/0   f   f   f   - 
+///          0/1   f   f   f   f 
+///     }
+///   }
+///   D_3 -> {
+///     observees: {}
+///     interesting_content: [Genesis({Alice, Bob, Carol, Dave, Eric})]
+///   }
+///   D_11 -> {
+///     observees: {Alice, Bob, Carol, Dave}
+///     interesting_content: [Remove(Eric)]
+///     meta_votes: {
+///         stage est bin aux dec
+///       A: 0/0   t   -   -   - 
+///       B: 0/0   t   -   -   - 
+///       C: 0/0   t   -   -   - 
+///       D: 0/0   t   -   -   - 
+///       E: 0/0   f   -   -   - 
+///     }
+///   }
+///   D_35 -> {
+///     observees: {Alice, Bob, Carol, Dave}
+///     interesting_content: []
+///     meta_votes: {
+///         stage est bin aux dec
+///       A: 0/0   t   t   t   t 
+///       B: 0/0   t   t   t   t 
+///       C: 0/0   t   t   t   t 
+///       D: 0/0   t   t   t   t 
+///       E: 0/0   f   f   f   - 
+///          0/1   f   f   f   f 
+///     }
+///   }
+/// }
+
+/// MetaElectionHandle(CURRENT)
+/// consensus_len: 1
+/// round_hashes: {
+///   Alice -> [
+///     RoundHash { round: 0, latest_block_hash: 557e90b3402a68f6ff018647557ba9919531dd36a5bd86650947bc56dcef3a40 }
+///   ]
+///   Bob -> [
+///     RoundHash { round: 0, latest_block_hash: 557e90b3402a68f6ff018647557ba9919531dd36a5bd86650947bc56dcef3a40 }
+///   ]
+///   Carol -> [
+///     RoundHash { round: 0, latest_block_hash: 557e90b3402a68f6ff018647557ba9919531dd36a5bd86650947bc56dcef3a40 }
+///   ]
+///   Dave -> [
+///     RoundHash { round: 0, latest_block_hash: 557e90b3402a68f6ff018647557ba9919531dd36a5bd86650947bc56dcef3a40 }
+///   ]
+///   Eric -> [
+///     RoundHash { round: 0, latest_block_hash: 557e90b3402a68f6ff018647557ba9919531dd36a5bd86650947bc56dcef3a40 }
+///   ]
+/// }
+/// interesting_events: {
+///   Alice -> ["A_12"]
+///   Bob -> ["B_14"]
+///   Carol -> ["C_12"]
+///   Dave -> ["D_11"]
+/// }
+/// all_voters: {Alice, Bob, Carol, Dave, Eric}
+/// undecided_voters: {Alice, Bob, Carol, Dave, Eric}
+/// meta_events: {
+///   A_12 -> {
+///     observees: {}
+///     interesting_content: [Remove(Eric)]
+///   }
+///   A_37 -> {
+///     observees: {Alice, Bob, Carol, Dave}
+///     interesting_content: []
+///     meta_votes: {
+///         stage est bin aux dec
+///       A: 0/0   t   t   t   t 
+///       B: 0/0   t   t   t   t 
+///       C: 0/0   t   t   t   t 
+///       D: 0/0   t   t   t   t 
+///       E: 0/0   f   f   f   - 
+///          0/1   f   f   f   f 
+///     }
+///   }
+///   B_14 -> {
+///     observees: {}
+///     interesting_content: [Remove(Eric)]
+///   }
+///   B_49 -> {
+///     observees: {Alice, Bob, Carol, Dave}
+///     interesting_content: []
+///     meta_votes: {
+///         stage est bin aux dec
+///       A: 0/0   t   t   t   t 
+///       B: 0/0   t   t   t   t 
+///       C: 0/0   t   t   t   t 
+///       D: 0/0   t   t   t   t 
+///       E: 0/0   f   f   f   - 
+///          0/1   f   f   f   - 
+///     }
+///   }
+///   C_12 -> {
+///     observees: {}
+///     interesting_content: [Remove(Eric)]
+///   }
+///   C_38 -> {
+///     observees: {Alice, Bob, Carol, Dave}
+///     interesting_content: []
+///     meta_votes: {
+///         stage est bin aux dec
+///       A: 0/0   t   t   t   t 
+///       B: 0/0   t   t   t   t 
+///       C: 0/0   t   t   t   t 
+///       D: 0/0   t   t   t   t 
+///       E: 0/0   f   f   f   - 
+///          0/1   f   f   f   - 
+///     }
+///   }
+///   D_11 -> {
+///     observees: {}
+///     interesting_content: [Remove(Eric)]
+///   }
+///   D_35 -> {
+///     observees: {Alice, Bob, Carol, Dave}
+///     interesting_content: []
+///     meta_votes: {
+///         stage est bin aux dec
+///       A: 0/0   t   t   t   t 
+///       B: 0/0   t   t   t   t 
+///       C: 0/0   t   t   t   t 
+///       D: 0/0   t   t   t   t 
+///       E: 0/0   f   f   f   - 
+///          0/1   f   f   f   - 
+///     }
+///   }
+/// }

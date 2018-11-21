@@ -1,0 +1,13 @@
+[package]
+authors = ["MaidSafe Developers <dev@maidsafe.net>"]
+description = "Generator of dot files for Parsec's functional tests"
+documentation = "https://docs.rs/parsec"
+homepage = "https://maidsafe.net"
+license = "GPL-3.0"
+name = "parsec-dot-gen"
+repository = "https://github.com/maidsafe/parsec"
+version = "0.1.0"
+
+[dependencies]
+parsec = { path = "..", features = ["testing", "dump-graphs"] }
+clap = "~2.32.0"

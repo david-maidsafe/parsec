@@ -2,7 +2,7 @@ environment:
   global:
     RUST_BACKTRACE: 1
   matrix:
-    - RUST_TOOLCHAIN: 1.26.2
+    - RUST_TOOLCHAIN: 1.29.0
 
 branches:
   only:
@@ -28,7 +28,8 @@ configuration:
   - Release
 
 build_script:
-  - cargo check --verbose --release --all-targets --features dump-graphs
+  - cargo check --verbose --release --all-targets --features=dump-graphs
 
 test_script:
-  - cargo test --verbose --release
+  - cargo test --verbose --release --features=testing,malice-detection
+  - cargo test --verbose --release --features=dump-graphs dot_parser

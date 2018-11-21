@@ -6,47 +6,20 @@
 // KIND, either express or implied. Please review the Licences for the specific language governing
 // permissions and limitations relating to use of the SAFE Network Software.
 
-use std::collections::{BTreeMap, BTreeSet};
+use super::bool_set::BoolSet;
+use super::meta_vote_counts::MetaVoteCounts;
+use std::collections::BTreeMap;
 use std::fmt::{self, Debug, Formatter};
-use std::iter;
 
-fn new_set_with_value(value: bool) -> BTreeSet<bool> {
-    let mut set = BTreeSet::new();
-    let _ = set.insert(value);
-    set
-}
-
-#[derive(Clone, PartialEq, PartialOrd)]
-pub(crate) enum Step {
-    ForcedTrue,
-    ForcedFalse,
-    GenuineFlip,
-}
-
-impl Default for Step {
-    fn default() -> Step {
-        Step::ForcedTrue
-    }
-}
-
-impl Debug for Step {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let step = match self {
-            Step::ForcedTrue => 0,
-            Step::ForcedFalse => 1,
-            Step::GenuineFlip => 2,
-        };
-        write!(f, "{}", step)
-    }
-}
+pub(crate) type MetaVotes<P> = BTreeMap<P, Vec<MetaVote>>;
 
 // This holds the state of a (binary) meta vote about which we're trying to achieve consensus.
-#[derive(Clone, Default)]
+#[derive(Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub(crate) struct MetaVote {
     pub round: usize,
     pub step: Step,
-    pub estimates: BTreeSet<bool>,
-    pub bin_values: BTreeSet<bool>,
+    pub estimates: BoolSet,
+    pub bin_values: BoolSet,
     pub aux_value: Option<bool>,
     pub decision: Option<bool>,
 }
@@ -59,19 +32,18 @@ fn write_bool(f: &mut Formatter, a_bool: bool) -> fmt::Result {
     }
 }
 
-fn write_multiple_bool_values(
-    f: &mut Formatter,
-    field: &str,
-    input: &BTreeSet<bool>,
-) -> fmt::Result {
+fn write_multiple_bool_values(f: &mut Formatter, field: &str, input: &BoolSet) -> fmt::Result {
     write!(f, "{}:{{", field)?;
-    let values: Vec<&bool> = input.iter().collect();
-    if values.len() == 1 {
-        write_bool(f, *values[0])?;
-    } else if values.len() == 2 {
-        write_bool(f, *values[0])?;
-        write!(f, ", ")?;
-        write_bool(f, *values[1])?;
+    match *input {
+        BoolSet::Empty => (),
+        BoolSet::Single(ref s) => {
+            write_bool(f, *s)?;
+        }
+        BoolSet::Both => {
+            write_bool(f, true)?;
+            write!(f, ", ")?;
+            write_bool(f, false)?;
+        }
     }
     write!(f, "}} ")
 }
@@ -104,7 +76,7 @@ impl Debug for MetaVote {
 impl MetaVote {
     pub fn new(initial_estimate: bool, others: &[Vec<MetaVote>], total_peers: usize) -> Vec<Self> {
         let mut initial = Self::default();
-        initial.estimates = new_set_with_value(initial_estimate);
+        initial.estimates = BoolSet::from_bool(initial_estimate);
         Self::next(&[initial], others, &BTreeMap::new(), total_peers)
     }
 
@@ -166,7 +138,7 @@ impl MetaVote {
                 return None;
             }
             let counts = MetaVoteCounts::new(parent, others, total_peers);
-            if counts.is_super_majority(counts.aux_values_set()) {
+            if counts.is_supermajority(counts.aux_values_set()) {
                 let coin_toss = coin_tosses.get(&parent.round);
                 let mut next = parent.clone();
                 Self::increase_step(&mut next, &counts, coin_toss.cloned());
@@ -189,7 +161,7 @@ impl MetaVote {
                 } else {
                     counts.estimates_false += 1;
                 }
-                meta_vote.estimates = new_set_with_value(*toss);
+                meta_vote.estimates = BoolSet::from_bool(*toss);
             }
         } else {
             if counts.at_least_one_third(counts.estimates_true) && meta_vote.estimates.insert(true)
@@ -205,10 +177,10 @@ impl MetaVote {
     }
 
     fn calculate_new_bin_values(meta_vote: &mut MetaVote, counts: &mut MetaVoteCounts) {
-        if counts.is_super_majority(counts.estimates_true) && meta_vote.bin_values.insert(true) {
+        if counts.is_supermajority(counts.estimates_true) && meta_vote.bin_values.insert(true) {
             counts.bin_values_true += 1;
         }
-        if counts.is_super_majority(counts.estimates_false) && meta_vote.bin_values.insert(false) {
+        if counts.is_supermajority(counts.estimates_false) && meta_vote.bin_values.insert(false) {
             counts.bin_values_false += 1;
         }
     }
@@ -223,7 +195,7 @@ impl MetaVote {
         }
         if bin_values_was_empty {
             if meta_vote.bin_values.len() == 1 {
-                if meta_vote.bin_values.contains(&true) {
+                if meta_vote.bin_values.contains(true) {
                     meta_vote.aux_value = Some(true);
                     counts.aux_values_true += 1;
                 } else {
@@ -239,25 +211,25 @@ impl MetaVote {
 
     fn calculate_new_decision(meta_vote: &mut MetaVote, counts: &MetaVoteCounts) {
         let opt_decision = match meta_vote.step {
-            Step::ForcedTrue => if meta_vote.bin_values.contains(&true)
-                && counts.is_super_majority(counts.aux_values_true)
+            Step::ForcedTrue => if meta_vote.bin_values.contains(true)
+                && counts.is_supermajority(counts.aux_values_true)
             {
                 Some(true)
             } else {
-                None
+                counts.decision
             },
-            Step::ForcedFalse => if meta_vote.bin_values.contains(&false)
-                && counts.is_super_majority(counts.aux_values_false)
+            Step::ForcedFalse => if meta_vote.bin_values.contains(false)
+                && counts.is_supermajority(counts.aux_values_false)
             {
                 Some(false)
             } else {
-                None
+                counts.decision
             },
-            Step::GenuineFlip => None,
+            Step::GenuineFlip => counts.decision,
         };
         if let Some(decision) = opt_decision {
-            meta_vote.estimates = new_set_with_value(decision);
-            meta_vote.bin_values = new_set_with_value(decision);
+            meta_vote.estimates = BoolSet::from_bool(decision);
+            meta_vote.bin_values = BoolSet::from_bool(decision);
             meta_vote.aux_value = Some(decision);
             meta_vote.decision = Some(decision);
         }
@@ -274,28 +246,28 @@ impl MetaVote {
         // Set the estimates as per the concrete coin toss rules.
         match new_meta_vote.step {
             Step::ForcedTrue => {
-                if counts.is_super_majority(counts.aux_values_false) {
-                    new_meta_vote.estimates = new_set_with_value(false);
-                } else if !counts.is_super_majority(counts.aux_values_true) {
-                    new_meta_vote.estimates = new_set_with_value(true);
+                if counts.is_supermajority(counts.aux_values_false) {
+                    new_meta_vote.estimates = BoolSet::from_bool(false);
+                } else if !counts.is_supermajority(counts.aux_values_true) {
+                    new_meta_vote.estimates = BoolSet::from_bool(true);
                 }
                 new_meta_vote.step = Step::ForcedFalse;
             }
             Step::ForcedFalse => {
-                if counts.is_super_majority(counts.aux_values_true) {
-                    new_meta_vote.estimates = new_set_with_value(true);
-                } else if !counts.is_super_majority(counts.aux_values_false) {
-                    new_meta_vote.estimates = new_set_with_value(false);
+                if counts.is_supermajority(counts.aux_values_true) {
+                    new_meta_vote.estimates = BoolSet::from_bool(true);
+                } else if !counts.is_supermajority(counts.aux_values_false) {
+                    new_meta_vote.estimates = BoolSet::from_bool(false);
                 }
                 new_meta_vote.step = Step::GenuineFlip;
             }
             Step::GenuineFlip => {
-                if counts.is_super_majority(counts.aux_values_true) {
-                    new_meta_vote.estimates = new_set_with_value(true);
-                } else if counts.is_super_majority(counts.aux_values_false) {
-                    new_meta_vote.estimates = new_set_with_value(false);
+                if counts.is_supermajority(counts.aux_values_true) {
+                    new_meta_vote.estimates = BoolSet::from_bool(true);
+                } else if counts.is_supermajority(counts.aux_values_false) {
+                    new_meta_vote.estimates = BoolSet::from_bool(false);
                 } else if let Some(coin_toss_result) = coin_toss {
-                    new_meta_vote.estimates = new_set_with_value(coin_toss_result);
+                    new_meta_vote.estimates = BoolSet::from_bool(coin_toss_result);
                 } else {
                     // Clear the estimates to indicate we're waiting for further events to be
                     // gossiped to try and get the coin toss result.
@@ -308,66 +280,26 @@ impl MetaVote {
     }
 }
 
-// This is used to collect the meta votes of other events relating to a single (binary) meta vote at
-// a given round and step.
-#[derive(Default)]
-struct MetaVoteCounts {
-    estimates_true: usize,
-    estimates_false: usize,
-    bin_values_true: usize,
-    bin_values_false: usize,
-    aux_values_true: usize,
-    aux_values_false: usize,
-    total_peers: usize,
+#[derive(Clone, PartialEq, Eq, PartialOrd, Serialize, Deserialize)]
+pub(crate) enum Step {
+    ForcedTrue,
+    ForcedFalse,
+    GenuineFlip,
 }
 
-impl MetaVoteCounts {
-    // Construct a `MetaVoteCounts` by collecting details from all meta votes which are for the
-    // given `parent`'s `round` and `step`.  These results will include info from our own `parent`
-    // meta vote.
-    fn new(parent: &MetaVote, others: &[Vec<MetaVote>], total_peers: usize) -> Self {
-        let mut counts = MetaVoteCounts::default();
-        counts.total_peers = total_peers;
-        for vote in others
-            .iter()
-            .filter_map(|other| {
-                other
-                    .iter()
-                    .filter(|vote| vote.round == parent.round && vote.step == parent.step)
-                    .last()
-            })
-            .chain(iter::once(parent))
-        {
-            if vote.estimates.contains(&true) {
-                counts.estimates_true += 1;
-            }
-            if vote.estimates.contains(&false) {
-                counts.estimates_false += 1;
-            }
-            if vote.bin_values.contains(&true) {
-                counts.bin_values_true += 1;
-            }
-            if vote.bin_values.contains(&false) {
-                counts.bin_values_false += 1;
-            }
-            match vote.aux_value {
-                Some(true) => counts.aux_values_true += 1,
-                Some(false) => counts.aux_values_false += 1,
-                None => (),
-            }
-        }
-        counts
+impl Default for Step {
+    fn default() -> Step {
+        Step::ForcedTrue
     }
+}
 
-    fn aux_values_set(&self) -> usize {
-        self.aux_values_true + self.aux_values_false
-    }
-
-    fn is_super_majority(&self, count: usize) -> bool {
-        3 * count > 2 * self.total_peers
-    }
-
-    fn at_least_one_third(&self, count: usize) -> bool {
-        3 * count >= self.total_peers
+impl Debug for Step {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        let step = match self {
+            Step::ForcedTrue => 0,
+            Step::ForcedFalse => 1,
+            Step::GenuineFlip => 2,
+        };
+        write!(f, "{}", step)
     }
 }

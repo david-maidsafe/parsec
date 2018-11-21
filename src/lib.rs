@@ -14,37 +14,75 @@
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/maidsafe/QA/master/Images/maidsafe_logo.png",
     html_favicon_url = "https://maidsafe.net/img/favicon.ico",
-    html_root_url = "https://docs.rs/parsec"
+    test(attr(forbid(warnings)))
 )]
 #![forbid(
-    exceeding_bitshifts, mutable_transmutes, no_mangle_const_items, unknown_crate_types, warnings
+    exceeding_bitshifts,
+    mutable_transmutes,
+    no_mangle_const_items,
+    unknown_crate_types,
+    warnings
 )]
 #![deny(
-    bad_style, deprecated, improper_ctypes, missing_docs, non_shorthand_field_patterns,
-    overflowing_literals, plugin_as_library, private_no_mangle_fns, private_no_mangle_statics,
-    stable_features, unconditional_recursion, unknown_lints, unsafe_code, unused, unused_allocation,
-    unused_attributes, unused_comparisons, unused_features, unused_parens, while_true
+    bad_style,
+    deprecated,
+    improper_ctypes,
+    missing_docs,
+    non_shorthand_field_patterns,
+    overflowing_literals,
+    plugin_as_library,
+    stable_features,
+    unconditional_recursion,
+    unknown_lints,
+    unsafe_code,
+    unused,
+    unused_allocation,
+    unused_attributes,
+    unused_comparisons,
+    unused_features,
+    unused_parens,
+    while_true
 )]
 #![warn(
-    trivial_casts, trivial_numeric_casts, unused_extern_crates, unused_import_braces,
-    unused_qualifications, unused_results
+    trivial_casts,
+    trivial_numeric_casts,
+    unused_extern_crates,
+    unused_import_braces,
+    unused_qualifications,
+    unused_results
 )]
 #![allow(
-    box_pointers, missing_copy_implementations, missing_debug_implementations,
+    box_pointers,
+    missing_copy_implementations,
+    missing_debug_implementations,
     variant_size_differences
 )]
 
-#[cfg(feature = "dump-graphs")]
+#[cfg(any(test, feature = "dump-graphs", feature = "mock"))]
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate log;
+#[macro_use]
 extern crate maidsafe_utilities;
+#[cfg(any(test, feature = "testing"))]
+extern crate pom;
+#[cfg(feature = "testing")]
+#[macro_use]
+extern crate proptest as proptest_crate;
 #[macro_use]
 extern crate quick_error;
+#[cfg(any(test, feature = "dump-graphs", feature = "mock"))]
 extern crate rand;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate tiny_keccak;
+#[cfg(any(test, feature = "testing", feature = "dump-graphs"))]
+#[macro_use]
+extern crate unwrap;
+#[cfg(any(test, feature = "mock"))]
+extern crate safe_crypto;
 
 mod block;
 mod dump_graph;
@@ -52,12 +90,17 @@ mod error;
 mod gossip;
 mod hash;
 mod id;
-mod meta_vote;
+mod meta_voting;
 mod network_event;
+mod observation;
 mod parsec;
-mod peer_manager;
+mod peer_list;
 mod round_hash;
 mod vote;
+
+#[doc(hidden)]
+#[cfg(any(test, feature = "testing"))]
+pub mod dev_utils;
 
 #[doc(hidden)]
 /// **NOT FOR PRODUCTION USE**: Mock types which trivially implement the required Parsec traits.
@@ -65,14 +108,29 @@ mod vote;
 /// This can be used to swap proper cryptographic functionality for inexpensive (in some cases
 /// no-op) replacements.  This is useful to allow tests to run quickly, but should not be used
 /// outside of testing code.
+#[cfg(any(test, feature = "mock"))]
 pub mod mock;
 
 pub use block::Block;
 #[cfg(feature = "dump-graphs")]
 pub use dump_graph::DIR;
-pub use error::Error;
-pub use gossip::{Request, Response};
+pub use error::{Error, Result};
+pub use gossip::{EventHash, PackedEvent, Request, Response};
 pub use id::{Proof, PublicId, SecretId};
 pub use network_event::NetworkEvent;
-pub use parsec::Parsec;
+pub use observation::{Malice, Observation};
+pub use parsec::{is_supermajority, Parsec};
 pub use vote::Vote;
+
+use maidsafe_utilities::serialisation;
+use serde::ser::Serialize;
+use std::fmt::Debug;
+
+fn serialise<T: Serialize + Debug>(data: &T) -> Vec<u8> {
+    if let Ok(serialised) = serialisation::serialise(data) {
+        serialised
+    } else {
+        log_or_panic!("Failed to serialise {:?}", data);
+        vec![]
+    }
+}

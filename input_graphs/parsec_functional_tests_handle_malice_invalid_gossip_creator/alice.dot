@@ -1,0 +1,126 @@
+/// our_id: Alice
+/// peer_list: {
+///   Alice; PeerState(VOTE|SEND|RECV); peers: {Alice, Bob}
+///   Bob; PeerState(VOTE|SEND|RECV); peers: {Alice, Bob}
+/// }
+digraph GossipGraph {
+  splines=false
+  rankdir=BT
+
+  style=invis
+  subgraph cluster_Alice {
+    label=Alice
+    Alice [style=invis]
+    "Alice" -> "A_0" [style=invis]
+    "A_0" -> "A_1" [minlen=1]
+    "A_1" -> "A_2" [minlen=1]
+  }
+  "C_0" -> "A_2" [constraint=false]
+
+  style=invis
+  subgraph cluster_Bob {
+    label=Bob
+    Bob [style=invis]
+    "Bob" -> "B_0" [style=invis]
+    "B_0" -> "B_1" [minlen=1]
+    "B_1" -> "B_2" [minlen=2]
+  }
+  "A_2" -> "B_2" [constraint=false]
+
+  style=invis
+  subgraph cluster_Carol {
+    label=Carol
+    Carol [style=invis]
+    "Carol" -> "C_0" [style=invis]
+  }
+
+  {
+    rank=same
+    Alice [style=filled, color=white]
+    Bob [style=filled, color=white]
+    Carol [style=filled, color=white]
+  }
+  Alice -> Bob [style=invis]
+
+/// ===== details of events =====
+  "A_0" [fillcolor=white, label=<<table border="0" cellborder="0" cellpadding="0" cellspacing="0">
+<tr><td colspan="6">A_0</td></tr>
+</table>>]
+/// cause: Initial
+/// last_ancestors: {Alice: 0}
+
+  "A_1" [style=filled, fillcolor=cyan, shape=rectangle, label=<<table border="0" cellborder="0" cellpadding="0" cellspacing="0">
+<tr><td colspan="6">A_1</td></tr>
+<tr><td colspan="6">Genesis({Alice, Bob})</td></tr>
+</table>>]
+/// cause: Observation(Genesis({Alice, Bob}))
+/// last_ancestors: {Alice: 1}
+
+  "A_2" [fillcolor=white, shape=rectangle, label=<<table border="0" cellborder="0" cellpadding="0" cellspacing="0">
+<tr><td colspan="6">A_2</td></tr>
+</table>>]
+/// cause: Response
+/// last_ancestors: {Alice: 2, Carol: 0}
+
+  "B_0" [fillcolor=white, label=<<table border="0" cellborder="0" cellpadding="0" cellspacing="0">
+<tr><td colspan="6">B_0</td></tr>
+</table>>]
+/// cause: Initial
+/// last_ancestors: {Bob: 0}
+
+  "B_1" [style=filled, fillcolor=cyan, shape=rectangle, label=<<table border="0" cellborder="0" cellpadding="0" cellspacing="0">
+<tr><td colspan="6">B_1</td></tr>
+<tr><td colspan="6">Genesis({Alice, Bob})</td></tr>
+</table>>]
+/// cause: Observation(Genesis({Alice, Bob}))
+/// last_ancestors: {Bob: 1}
+
+  "B_2" [fillcolor=white, shape=rectangle, label=<<table border="0" cellborder="0" cellpadding="0" cellspacing="0">
+<tr><td colspan="6">B_2</td></tr>
+</table>>]
+/// cause: Request
+/// last_ancestors: {Alice: 1, Bob: 2}
+
+  "C_0" [fillcolor=white, label=<<table border="0" cellborder="0" cellpadding="0" cellspacing="0">
+<tr><td colspan="6">C_0</td></tr>
+</table>>]
+/// cause: Initial
+/// last_ancestors: {Alice: 0}
+
+}
+
+/// ===== meta-elections =====
+/// consensus_history:
+
+/// MetaElectionHandle(CURRENT)
+/// consensus_len: 0
+/// round_hashes: {
+///   Alice -> [
+///     RoundHash { round: 0, latest_block_hash: 0000000000000000000000000000000000000000000000000000000000000000 }
+///   ]
+///   Bob -> [
+///     RoundHash { round: 0, latest_block_hash: 0000000000000000000000000000000000000000000000000000000000000000 }
+///   ]
+/// }
+/// interesting_events: {
+/// }
+/// all_voters: {Alice, Bob}
+/// undecided_voters: {Alice, Bob}
+/// meta_events: {
+///   A_1 -> {
+///     observees: {}
+///     interesting_content: []
+///   }
+///   A_2 -> {
+///     observees: {Bob}
+///     interesting_content: []
+///   }
+///   B_1 -> {
+///     observees: {}
+///     interesting_content: []
+///   }
+///   B_2 -> {
+///     observees: {}
+///     interesting_content: []
+///   }
+/// }

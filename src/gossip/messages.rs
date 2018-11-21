@@ -15,23 +15,14 @@ use network_event::NetworkEvent;
 #[serde(bound = "")]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Request<T: NetworkEvent, P: PublicId> {
-    packed_events: Vec<PackedEvent<T, P>>,
-}
-
-impl<'a, T: 'a + NetworkEvent, P: 'a + PublicId> Request<T, P> {
-    pub(crate) fn new<I: Iterator<Item = &'a Event<T, P>>>(events_iter: I) -> Self {
-        Self {
-            packed_events: events_iter.map(Event::pack).collect(),
-        }
-    }
+    pub(crate) packed_events: Vec<PackedEvent<T, P>>,
 }
 
 impl<T: NetworkEvent, P: PublicId> Request<T, P> {
-    pub(crate) fn unpack(self) -> Vec<Event<T, P>> {
-        self.packed_events
-            .into_iter()
-            .filter_map(|packed| Event::unpack(packed).ok())
-            .collect()
+    pub(crate) fn new(events: Vec<&Event<T, P>>) -> Self {
+        Self {
+            packed_events: events.into_iter().map(Event::pack).collect(),
+        }
     }
 }
 
@@ -39,22 +30,13 @@ impl<T: NetworkEvent, P: PublicId> Request<T, P> {
 #[serde(bound = "")]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Response<T: NetworkEvent, P: PublicId> {
-    packed_events: Vec<PackedEvent<T, P>>,
-}
-
-impl<'a, T: 'a + NetworkEvent, P: 'a + PublicId> Response<T, P> {
-    pub(crate) fn new<I: Iterator<Item = &'a Event<T, P>>>(events_iter: I) -> Self {
-        Self {
-            packed_events: events_iter.map(Event::pack).collect(),
-        }
-    }
+    pub(crate) packed_events: Vec<PackedEvent<T, P>>,
 }
 
 impl<T: NetworkEvent, P: PublicId> Response<T, P> {
-    pub(crate) fn unpack(self) -> Vec<Event<T, P>> {
-        self.packed_events
-            .into_iter()
-            .filter_map(|packed| Event::unpack(packed).ok())
-            .collect()
+    pub(crate) fn new(events: Vec<&Event<T, P>>) -> Self {
+        Self {
+            packed_events: events.into_iter().map(Event::pack).collect(),
+        }
     }
 }

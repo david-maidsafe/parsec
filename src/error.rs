@@ -6,50 +6,67 @@
 // KIND, either express or implied. Please review the Licences for the specific language governing
 // permissions and limitations relating to use of the SAFE Network Software.
 
+use peer_list::PeerState;
+use std::result;
+
 quick_error! {
     /// Parsec error variants.
     #[derive(Debug)]
+    #[allow(missing_docs)] // quick_error chokes on doc comments inside the variants.
     pub enum Error {
         /// Payload of a `Vote` doesn't match the payload of a `Block`.
         MismatchedPayload {
-            description("Payload doesn't match")
             display("The payload of the vote doesn't match the payload of targeted block.")
         }
         /// Failed to verify signature.
         SignatureFailure {
-            description("Signature cannot be verified")
             display("The message or signature might be corrupted, or the signer is wrong.")
         }
         /// Serialisation Error.
         Serialisation(error: ::maidsafe_utilities::serialisation::SerialisationError) {
-            description(error.description())
             display("Serialisation error: {}", error)
             from()
         }
-        /// Peer is not known to this node.
+        /// Peer is not known to our node.
         UnknownPeer {
-            description("Peer is not known")
-            display("The peer_id is not known to this node's peer_manager.")
+            display("The peer_id is not known to our node's peer_list.")
+        }
+        /// Peer is known to us, but has unexpected state.
+        InvalidPeerState {
+            required: PeerState,
+            actual: PeerState,
+        } {
+            display("The peer is in invalid state (required: {:?}, actual: {:?}).", required, actual)
+        }
+        /// Our node is in unexpected state.
+        InvalidSelfState {
+            required: PeerState,
+            actual: PeerState
+        } {
+            display("Our node is in invalid state (required: {:?}, actual: {:?}).", required, actual)
         }
         /// The given event is invalid or malformed.
         InvalidEvent {
-            description("Invalid event")
             display("The given event is invalid or malformed.")
         }
-        /// This event's self-parent or other-parent is unknown to this node.
+        /// This event's self-parent or other-parent is unknown to our node.
         UnknownParent {
-            description("Parent event(s) not known")
             display("This event's self-parent or other-parent is unknown to this node.")
         }
-        /// This node has already voted for this network event.
+        /// Our node has already voted for this network event.
         DuplicateVote {
-            description("Duplicate vote")
-            display("This node has already voted for this network event.")
+            display("Our node has already voted for this network event.")
+        }
+        /// The peer sent a message to us before knowing we could handle it.
+        PrematureGossip {
+            display("The peer did not know we could handle a message from it.")
         }
         /// Logic error.
         Logic {
-            description("Logic error")
             display("This a logic error and represents a flaw in the code.")
         }
     }
 }
+
+/// A specialised `Result` type for Parsec.
+pub type Result<T> = result::Result<T, Error>;

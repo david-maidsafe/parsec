@@ -9,20 +9,21 @@
 use error::Error;
 use id::{Proof, PublicId};
 use network_event::NetworkEvent;
+use observation::Observation;
 use std::collections::{BTreeMap, BTreeSet};
 use vote::Vote;
 
-/// A struct representing a collection of votes by peers for a network event of type `T`.
+/// A struct representing a collection of votes by peers for an `Observation`.
 #[serde(bound = "")]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Debug)]
 pub struct Block<T: NetworkEvent, P: PublicId> {
-    payload: T,
+    payload: Observation<T, P>,
     proofs: BTreeSet<Proof<P>>,
 }
 
 impl<T: NetworkEvent, P: PublicId> Block<T, P> {
     /// Creates a `Block` from `payload` and `votes`.
-    pub fn new(payload: T, votes: &BTreeMap<P, Vote<T, P>>) -> Result<Self, Error> {
+    pub fn new(payload: Observation<T, P>, votes: &BTreeMap<P, Vote<T, P>>) -> Result<Self, Error> {
         let proofs: BTreeSet<Proof<P>> = votes
             .iter()
             .filter_map(|(public_id, vote)| {
@@ -31,8 +32,7 @@ impl<T: NetworkEvent, P: PublicId> Block<T, P> {
                 } else {
                     None
                 }
-            })
-            .collect();
+            }).collect();
         if proofs.len() != votes.len() {
             return Err(Error::SignatureFailure);
         }
@@ -40,7 +40,7 @@ impl<T: NetworkEvent, P: PublicId> Block<T, P> {
     }
 
     /// Returns the payload of this block.
-    pub fn payload(&self) -> &T {
+    pub fn payload(&self) -> &Observation<T, P> {
         &self.payload
     }
 
